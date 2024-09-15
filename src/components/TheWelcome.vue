@@ -1,8 +1,5 @@
 <template>
   <div class="container m-auto w-[1024]">
-    <!-- <div>
-      <ConfettiExplosion :particleCount="200" :force="0.3" v-if="visible" />
-    </div> -->
     <div class="w-full" v-for="(question, index) in data" :key="index">
       <QuestionCard :question="question" @celebrate="triggerConfetti" :highlighter="highlighter" />
     </div>
@@ -14,7 +11,6 @@ import getQuestions from '@/api/getQuestions'
 import { ref, onMounted, nextTick } from 'vue'
 import QuestionCard from './QuestionCard.vue'
 import useScoreStore from '@/store/score'
-import ConfettiExplosion from 'vue-confetti-explosion'
 
 import { createHighlighter } from 'shiki'
 

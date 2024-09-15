@@ -4,7 +4,7 @@ function parseQuestions(text: string) {
 }
 
 export default async function getQuestions() {
-  const url = '/src/easy-questions.md'
+  const url = '/src/assets/easy-questions.md'
   let questions = []
   try {
     const response = await fetch(url)

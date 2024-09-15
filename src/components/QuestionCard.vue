@@ -15,9 +15,15 @@
       <li class="p-0 m-0" v-for="(answer, key) in markdown?.suggestions" :key="key">
         <button
           :disabled="!!selectedAnswer"
-          @click="handleClick(key as string, markdown?.answer)"
+          @click="handleClick(key as unknown as string, markdown?.answer as string)"
           class="p-2 m-2 bg-slate border-solid border-1 border-gray-400 bg-slate-50 w-full"
-          :class="handleClickAnswer(key, markdown?.answer, selectedAnswer)"
+          :class="
+            handleClickAnswer(
+              key as unknown as string,
+              markdown?.answer as string,
+              selectedAnswer as string
+            )
+          "
         >
           {{ key }} : <code>{{ answer }}</code>
         </button>
@@ -33,8 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from 'vue'
-import { marked } from 'marked'
+import { onMounted, ref } from 'vue'
 import useScoreStore from '@/store/score'
 
 interface Markdown {
@@ -51,16 +56,9 @@ const showAnswer = ref<boolean>(false)
 
 const markdown = ref<Markdown | null>(null)
 const selectedAnswer = ref<string | null>(null)
-const isVisible = ref(false)
-
-const explode = async () => {
-  isVisible.value = false
-  await nextTick()
-  isVisible.value = true
-}
 
 onMounted(() => {
-  markdown.value = parseMarkdown(props.question, props.highlighter)
+  markdown.value = parseMarkdown(props.question, props.highlighter) as Markdown
 })
 
 const handleClick = (key: string, answer: string) => {
@@ -82,7 +80,6 @@ const handleClickAnswer = (key: string, answer: string, selectedAnswer: string) 
 
 function parseMarkdown(markdown: string, highlighter: (code: string) => void) {
   if (!highlighter) {
-    console.log('highlighter is not defined..', highlighter)
     return false
   }
   // Extract the question title
@@ -97,7 +94,9 @@ function parseMarkdown(markdown: string, highlighter: (code: string) => void) {
   const suggestionsMatch = markdown.match(/- ([A-Z]): `(.*?)`/g)
   const suggestions = suggestionsMatch
     ? suggestionsMatch.reduce((acc, s) => {
+        //@ts-ignore
         const [_, key, value] = s.match(/- ([A-Z]): `(.*?)`/)
+        //@ts-ignore
         acc[key] = value
         return acc
       }, {})
@@ -119,10 +118,6 @@ function parseMarkdown(markdown: string, highlighter: (code: string) => void) {
     answer,
     explanation
   }
-}
-const renderMarkDown = (question: string) => {
-  console.log('question..', question)
-  marked(question)
 }
 </script>
 
