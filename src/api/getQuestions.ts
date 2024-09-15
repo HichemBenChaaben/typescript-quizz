@@ -4,7 +4,8 @@ function parseQuestions(text: string) {
 }
 
 export default async function getQuestions() {
-  const url = '/src/assets/easy-questions.md'
+  const url =
+    'https://raw.githubusercontent.com/HichemBenChaaben/typescript-quizz/master/src/assets/easy-questions.md'
   let questions = []
   try {
     const response = await fetch(url)
