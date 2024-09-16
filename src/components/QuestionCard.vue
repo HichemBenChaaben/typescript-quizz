@@ -16,7 +16,7 @@
         <button
           :disabled="!!selectedAnswer"
           @click="handleClick(key as unknown as string, markdown?.answer as string)"
-          class="p-2 m-2 bg-slate border-solid border-1 border-gray-400 bg-slate-50 w-full"
+          class="p-2 m-2 bg-slate border-solid border-1 border-gray-400 bg-slate-50 w-full hover:bg-slate-100 hover:cursor-pointer"
           :class="
             handleClickAnswer(
               key as unknown as string,
@@ -29,10 +29,17 @@
         </button>
       </li>
     </ul>
-    <button class="pt-4 mr-2 ml-2" v-if="selectedAnswer" @click="() => (showAnswer = !showAnswer)">
+    <button
+      class="py-4 mr-2 ml-2 disabled:opacity-30 flex w-full"
+      :disabled="!selectedAnswer"
+      @click="() => (showAnswer = !showAnswer)"
+    >
       <span class="font-semibold">{{ showAnswer ? 'hide explanation' : 'show explanation' }}</span>
     </button>
-    <div class="p-4 bg-blue-50" v-if="showAnswer === true">
+    <div
+      class="p-4 bg-blue-50 border border-blue-100 rounded-sm text-blue-800"
+      v-if="showAnswer === true"
+    >
       <code>{{ markdown?.explanation.replace(/^#### Answer: [A-D]\s*/, '') }}</code>
     </div>
   </div>
@@ -73,6 +80,7 @@ const handleClickAnswer = (key: string, answer: string, selectedAnswer: string) 
     return 'correct' // Correct answer
   }
   if (key === selectedAnswer) {
+    showAnswer.value = true;
     return 'incorrect' // Wrong answer
   }
   return '' // No styling if neither condition matches

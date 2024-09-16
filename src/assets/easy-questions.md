@@ -40,7 +40,7 @@ console.log(x)
 
 #### Answer: A
 
-Since never is a bottom type, it will be ignored in the union type, so x effectively has the type number. The value 42 will be logged.
+Since `never` is a bottom type, it will be ignored in the union type, so x effectively has the type number. The value 42 will be logged.
 
 </p>
 </details>
