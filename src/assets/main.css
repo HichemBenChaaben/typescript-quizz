@@ -4,6 +4,12 @@ main {
   width: 1024px;
   margin: 0 auto;
 }
+
+.source-code-pro {
+  font-family: 'Source Code Pro', monospace;
+  font-optical-sizing: auto;
+}
+
 @layer components {
   .container {
     @apply max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6;

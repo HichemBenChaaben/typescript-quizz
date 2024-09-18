@@ -13,7 +13,7 @@
     />
   </svg>
 </template>
-<script lang="ts"></script>
+<script lang="ts" setup></script>
 <style scoped>
 .container {
   --uib-size: 35px;

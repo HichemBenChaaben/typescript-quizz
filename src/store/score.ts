@@ -23,6 +23,7 @@ const useScoreStore = defineStore('score', () => {
   const increaseInCorrectAnswers = () => {
     score.value.incorrectAnswers = score.value.incorrectAnswers + 1
   }
+
   return {
     score,
     setTotalQuestions,

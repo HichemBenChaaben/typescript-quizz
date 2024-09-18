@@ -3,11 +3,6 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import 'prismjs'
-import 'prismjs/themes/prism-coy.css'
-import 'prismjs/components/prism-javascript.js'
-import 'prismjs/components/prism-typescript.js'
-
 import App from './App.vue'
 import router from './router'
 

@@ -1,8 +1,6 @@
 <template>
-  <div class="container m-auto w-[1024]">
-    <div class="w-full" v-for="(question, index) in data" :key="index">
-      <QuestionCard :question="question" @celebrate="triggerConfetti" :highlighter="highlighter" />
-    </div>
+  <div class="w-full" v-for="(question, index) in data" :key="index">
+    <QuestionCard :question="question" @celebrate="triggerConfetti" :highlighter="highlighter" />
   </div>
 </template>
 

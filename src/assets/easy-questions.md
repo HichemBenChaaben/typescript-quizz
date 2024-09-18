@@ -1,3 +1,4 @@
+---
 ###### 1. What's the type
 
 ```typescript
@@ -40,7 +41,7 @@ console.log(x)
 
 #### Answer: A
 
-Since `never` is a bottom type, it will be ignored in the union type, so x effectively has the type number. The value 42 will be logged.
+Since ```javascript never` is a bottom type, it will be ignored in the union type, so x effectively has the type number. The value 42 will be logged.
 
 </p>
 </details>
@@ -485,31 +486,6 @@ console.log(arr.length)
 #### Answer: B
 
 Negative indices in arrays are treated as properties rather than valid indices. Therefore, `arr.length` remains 0, as no valid element was added to the array.
-
-</p>
-</details>
----
-
-###### 22. What does the following function return?
-
-```typescript
-function foo(): string {
-  return 42 as unknown as string
-}
-```
-
-- A: `"42"`
-- B: `42`
-- C: `Compile-time error`
-- D: `"undefined"`
-
-<details><summary><b>Answer</b></summary>
-<p>
-
-#### Answer: B
-
-The double casting unknown to string bypasses TypeScript’s type safety, allowing `42` to be returned as a string.
-However, it is still returned as the value `42` at runtime, not as a string.
 
 </p>
 </details>
