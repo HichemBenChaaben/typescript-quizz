@@ -1088,3 +1088,394 @@ This utility type recursively makes all properties readonly, including nested ob
 </p>
 </details>
 
+[Previous questions 1-40 remain the same...]
+
+---
+
+###### 41. What's the result of this variadic tuple manipulation?
+
+```typescript
+type Repeat<T, N extends number, A extends any[] = []> = A['length'] extends N 
+  ? A 
+  : Repeat<T, N, [...A, T]>;
+
+type ZipTuples<T extends any[], U extends any[]> = 
+  T extends [infer TFirst, ...infer TRest]
+    ? U extends [infer UFirst, ...infer URest]
+      ? [[TFirst, UFirst], ...ZipTuples<TRest, URest>]
+      : []
+    : [];
+
+type Result = ZipTuples<Repeat<number, 3>, Repeat<string, 3>>;
+```
+
+- A: `[[number, string], [number, string], [number, string]]`
+- B: `[number, string][]`
+- C: `[number | string, number | string, number | string]`
+- D: `never[]`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This combines two advanced concepts: generating tuples of specified length and zipping them together. The Repeat type creates a tuple of N elements, while ZipTuples pairs elements from both tuples into a new tuple of tuples.
+
+</p>
+</details>
+
+---
+
+###### 42. What's the type of this higher-order type operator?
+
+```typescript
+type TypeOperator<F extends <T>(...args: any[]) => any> = 
+  F extends <T>(...args: infer Args) => infer R
+    ? <U>(...args: { [K in keyof Args]: Args[K] extends T ? U : Args[K] }) => 
+        R extends T ? U : R
+    : never;
+
+type MapString = <T>(value: T) => T extends string ? number : T;
+type Result = TypeOperator<MapString>;
+```
+
+- A: `<U>(value: U extends string ? U : string) => U extends string ? number : U`
+- B: `<U>(value: U) => U`
+- C: `<U>(value: U) => number`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This creates a higher-order type operator that transforms generic functions while preserving their type relationships. It maps type parameters and return types according to a pattern, maintaining type safety.
+
+</p>
+</details>
+
+---
+
+###### 43. What does this type-level state machine produce?
+
+```typescript
+type State = 'Idle' | 'Loading' | 'Success' | 'Error';
+type Event = 'FETCH' | 'RESOLVE' | 'REJECT' | 'RESET';
+
+type Transitions = {
+  Idle: { FETCH: 'Loading' };
+  Loading: { RESOLVE: 'Success'; REJECT: 'Error' };
+  Success: { RESET: 'Idle' };
+  Error: { RESET: 'Idle' };
+};
+
+type NextState<S extends State, E extends Event> = 
+  S extends keyof Transitions
+    ? E extends keyof Transitions[S]
+      ? Transitions[S][E]
+      : S
+    : never;
+
+type Result1 = NextState<'Idle', 'FETCH'>;
+type Result2 = NextState<'Loading', 'RESET'>;
+type Result3 = NextState<'Success', 'RESOLVE'>;
+```
+
+- A: `'Loading', 'Loading', 'Success'`
+- B: `'Loading', never, 'Success'`
+- C: `'Loading', 'Loading', never`
+- D: `'Loading', 'Success', 'Success'`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: B
+
+This implements a type-level state machine that enforces valid state transitions. Result2 is 'never' because 'RESET' is not a valid event in the Loading state, and Result3 is 'Success' because 'RESOLVE' isn't defined for Success state.
+
+</p>
+</details>
+
+---
+
+###### 44. What's the output of this recursive string manipulation?
+
+```typescript
+type StringToTuple<S extends string> = 
+  S extends `${infer C}${infer R}`
+    ? [C, ...StringToTuple<R>]
+    : [];
+
+type Reverse<T extends any[]> = 
+  T extends [...infer Rest, infer Last]
+    ? [Last, ...Reverse<Rest>]
+    : [];
+
+type Join<T extends any[], D extends string = ''> = 
+  T extends []
+    ? ''
+    : T extends [infer F]
+    ? F
+    : T extends [infer F, ...infer R]
+    ? `${F & string}${D}${Join<R, D>}`
+    : string;
+
+type Result = Join<Reverse<StringToTuple<'hello'>>, ''>;
+```
+
+- A: `'olleh'`
+- B: `'hello'`
+- C: `string`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This combines three type-level string manipulations: converting a string to a tuple of characters, reversing the tuple, and joining it back into a string. The result is a reversed string at the type level.
+
+</p>
+</details>
+
+---
+
+###### 45. What's the type of this advanced inference with conditional types?
+
+```typescript
+type InferPropType<T, P extends keyof any> = 
+  T extends { [K in P]: infer U } ? U : never;
+
+type UnionToIntersection<U> = 
+  (U extends any ? (k: U) => void : never) extends 
+  ((k: infer I) => void) ? I : never;
+
+type ExtractField<T, P extends keyof any> = 
+  UnionToIntersection<InferPropType<T, P>>;
+
+interface A { x: string; }
+interface B { x: number; }
+interface C { x: boolean; }
+
+type Result = ExtractField<A | B | C, 'x'>;
+```
+
+- A: `string & number & boolean`
+- B: `string | number | boolean`
+- C: `never`
+- D: `unknown`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: C
+
+This attempts to extract and intersect a field type from a union of objects. Since string & number & boolean is impossible (never), the result is never. The UnionToIntersection type converts a union to an intersection type.
+
+</p>
+</details>
+
+---
+
+###### 46. What's the result of this recursive mapped type?
+
+```typescript
+type DeepModify<T, Modifier> = T extends object
+  ? T extends (infer U)[]
+    ? DeepModify<U, Modifier>[]
+    : {
+        [P in keyof T]: T[P] extends Function
+          ? T[P]
+          : DeepModify<T[P], Modifier> extends infer DM
+          ? DM & Modifier
+          : never
+      }
+  : T & Modifier;
+
+interface AddTimestamp {
+  _timestamp: number;
+}
+
+type Result = DeepModify<{
+  user: {
+    name: string;
+    addresses: { street: string; }[];
+  };
+}, AddTimestamp>;
+```
+
+- A: Complex type with _timestamp added at every level
+- B: Complex type with _timestamp only at root
+- C: Complex type with _timestamp only at leaves
+- D: Error: Type 'AddTimestamp' does not satisfy constraint
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+DeepModify recursively applies the Modifier type to every object in the structure, including array elements. The result has _timestamp at every object level while preserving the original structure.
+
+</p>
+</details>
+
+---
+
+###### 47. What's the type of this advanced type inference system?
+
+```typescript
+type IsNeverType<T> = [T] extends [never] ? true : false;
+type IsAnyType<T> = 0 extends (1 & T) ? true : false;
+type IsUnknownType<T> = IsNeverType<T> extends false
+  ? T extends unknown
+    ? unknown extends T
+      ? IsAnyType<T> extends false
+        ? true
+        : false
+      : false
+    : false
+  : false;
+
+type Result1 = IsUnknownType<any>;
+type Result2 = IsUnknownType<never>;
+type Result3 = IsUnknownType<unknown>;
+```
+
+- A: `false, false, true`
+- B: `true, false, true`
+- C: `false, true, false`
+- D: `true, true, true`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type system can differentiate between any, never, and unknown types using sophisticated type relationships. It uses multiple conditions to ensure accurate type detection even in edge cases.
+
+</p>
+</details>
+
+---
+
+###### 48. What's the output of this type-level parser?
+
+```typescript
+type ParseInt<T extends string> = 
+  T extends `${infer Digit extends number}`
+    ? Digit
+    : never;
+
+type BuildNumber<T extends string, Acc extends number = 0> = 
+  T extends `${infer First}${infer Rest}`
+    ? First extends `${number}`
+      ? BuildNumber<Rest, Acc extends 0 
+          ? ParseInt<First>
+          : Add<Multiply<Acc, 10>, ParseInt<First>>>
+      : never
+    : Acc;
+
+type Result = BuildNumber<'12345'>;
+```
+
+- A: `12345`
+- B: `'12345'`
+- C: `number`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This implements a type-level parser that converts string numbers into numeric literal types. It recursively builds up the number using type-level arithmetic operations while maintaining type safety.
+
+</p>
+</details>
+
+---
+
+###### 49. What's the type of this advanced discriminated union manipulation?
+
+```typescript
+type UnionToTuple<T> = UnionToIntersection<
+  T extends any ? () => T : never
+> extends () => infer A
+  ? [...UnionToTuple<Exclude<T, A>>, A]
+  : [];
+
+type ToIntersection<U> = (U extends any
+  ? (k: U) => void
+  : never) extends ((k: infer I) => void)
+  ? I
+  : never;
+
+type UnionToOverloads<U> = UnionToTuple<U> extends (infer Tuple)[]
+  ? Tuple extends [any, ...any[]]
+    ? { [K in keyof Tuple]: (x: Tuple[K]) => void }[number]
+    : never
+  : never;
+
+type Result = UnionToOverloads<string | number | boolean>;
+```
+
+- A: `((x: string) => void) & ((x: number) => void) & ((x: boolean) => void)`
+- B: `(x: string | number | boolean) => void`
+- C: `never`
+- D: `{ (x: string): void } | { (x: number): void } | { (x: boolean): void }`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This creates function overloads from a union type by first converting the union to a tuple, then mapping the tuple to function types, and finally converting back to an intersection type of overloads.
+
+</p>
+</details>
+
+---
+
+###### 50. What's the result of this type-level SQL query builder?
+
+```typescript
+type Table = {
+  users: {
+    id: number;
+    name: string;
+    age: number;
+  };
+  posts: {
+    id: number;
+    title: string;
+    userId: number;
+  };
+};
+
+type Select<T, K extends keyof T> = { [P in K]: T[P] };
+type Join<T, U, ON extends string> = 
+  ON extends `${infer TKey}.${infer UKey}`
+    ? TKey extends keyof T
+      ? UKey extends keyof U
+        ? Select<T, keyof T> & Select<U, keyof U>
+        : never
+      : never
+    : never;
+
+type Query = Join<Table['users'], Table['posts'], 'users.id.posts.userId'>;
+```
+
+- A: Complex merged type with all fields
+- B: Never
+- C: Error in ON clause
+- D: Runtime error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: C
+
+This attempts to implement a type-level SQL-like query builder. The error occurs because the ON clause format doesn't match the expected pattern (it has an extra segment). A correct ON clause would be 'users.id.userId'.
+
+</p>
+</details>
