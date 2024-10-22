@@ -1476,6 +1476,5 @@ type Query = Join<Table['users'], Table['posts'], 'users.id.posts.userId'>;
 #### Answer: C
 
 This attempts to implement a type-level SQL-like query builder. The error occurs because the ON clause format doesn't match the expected pattern (it has an extra segment). A correct ON clause would be 'users.id.userId'.
-
 </p>
 </details>
