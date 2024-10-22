@@ -515,3 +515,576 @@ However, it is still returned as the value `42` at runtime, not as a string.
 </p>
 </details>
 ---
+---
+
+###### 23. What's the type of this recursive conditional type?
+
+```typescript
+type Recurse<T> = T extends Array<infer U> ? Recurse<U> : T
+type Result = Recurse<number[][][]>
+```
+
+- A: `number[][][]`
+- B: `number[][]`
+- C: `number[]`
+- D: `number`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: D
+
+The recursive conditional type `Recurse` will keep unwrapping array types until it reaches the base type. For `number[][][]`, it will recursively unwrap three levels of arrays to get to `number`.
+
+</p>
+</details>
+
+---
+
+###### 24. What's the output of this mapped type transformation?
+
+```typescript
+type RemoveReadonly<T> = {
+    -readonly [P in keyof T]: T[P]
+}
+type Original = { readonly a: number; readonly b: string }
+type Result = RemoveReadonly<Original>
+```
+
+- A: `{ a: number; b: string }`
+- B: `{ readonly a: number; readonly b: string }`
+- C: `{ -readonly a: number; -readonly b: string }`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+The `-readonly` modifier in the mapped type removes the readonly modifier from all properties. The resulting type will have mutable properties.
+
+</p>
+</details>
+
+---
+
+###### 25. What's the type of `result` in this example?
+
+```typescript
+type Paths<T> = T extends object
+  ? { [K in keyof T]: [K, ...Paths<T[K]>] }[keyof T]
+  : [];
+
+type User = {
+  name: string;
+  address: {
+    street: string;
+    city: string;
+  };
+};
+
+type Result = Paths<User>;
+```
+
+- A: `["name"] | ["address"] | ["address", "street"] | ["address", "city"]`
+- B: `string[]`
+- C: `never`
+- D: `unknown[]`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This is a recursive type that generates all possible property paths in a nested object type. For the User type, it creates a union of tuples representing each possible path through the object.
+
+</p>
+</details>
+
+---
+
+###### 26. What will this code output?
+
+```typescript
+type IsNever<T> = [T] extends [never] ? true : false;
+type Result1 = IsNever<never>;
+type Result2 = IsNever<any>;
+type Result3 = IsNever<unknown>;
+```
+
+- A: `true, false, false`
+- B: `false, true, false`
+- C: `never, any, unknown`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+The `[T] extends [never]` pattern is necessary because `never` behaves specially in conditional types. Without the tuple wrapper, the condition would never be true. This pattern correctly identifies the never type.
+
+</p>
+</details>
+
+---
+
+###### 27. What's the type of this template literal manipulation?
+
+```typescript
+type CamelToSnake<S extends string> = S extends `${infer T}${infer U}`
+  ? U extends Uncapitalize<U>
+    ? `${Uncapitalize<T>}${CamelToSnake<U>}`
+    : `${Uncapitalize<T>}_${CamelToSnake<Uncapitalize<U>>}`
+  : S;
+
+type Result = CamelToSnake<"thisIsATest">;
+```
+
+- A: `"this_is_a_test"`
+- B: `"thisIsATest"`
+- C: `"this-is-a-test"`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This recursive type converts camelCase strings to snake_case using template literal types. It identifies capital letters and adds underscores before them while converting everything to lowercase.
+
+</p>
+</details>
+
+---
+
+###### 28. What's the result of this distributive conditional type?
+
+```typescript
+type BoxedValue<T> = { value: T };
+type BoxedArray<T> = { array: T[] };
+type Boxed<T> = T extends any[] ? BoxedArray<T[number]> : BoxedValue<T>;
+
+type Result1 = Boxed<string>;
+type Result2 = Boxed<number[]>;
+type Result3 = Boxed<string | number[]>;
+```
+
+- A: `BoxedValue<string>, BoxedArray<number>, BoxedValue<string> | BoxedArray<number>`
+- B: `BoxedValue<string>, BoxedArray<number>, BoxedArray<string | number>`
+- C: `BoxedArray<string>, BoxedValue<number[]>, BoxedValue<string | number[]>`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This is a distributive conditional type. When given a union type, it distributes over the union. For `string | number[]`, it evaluates each type separately and then unions the results.
+
+</p>
+</details>
+
+---
+
+###### 29. What's the output of this inferred tuple type?
+
+```typescript
+type Last<T extends any[]> = T extends [...any[], infer L] ? L : never;
+type Push<T extends any[], V> = [...T, V];
+type ShiftToLast<T extends any[]> = T extends [infer F, ...infer R]
+  ? Push<R, F>
+  : T;
+
+type Result = ShiftToLast<[1, 2, 3]>;
+```
+
+- A: `[2, 3, 1]`
+- B: `[1, 2, 3]`
+- C: `[3, 1, 2]`
+- D: `never`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type manipulation takes the first element of a tuple and moves it to the end. It uses tuple type inference to break apart the tuple and reconstruct it in the desired order.
+
+</p>
+</details>
+
+---
+
+###### 30. What's the type of this computed property?
+
+```typescript
+type PropType<T, Path extends string> = Path extends keyof T
+  ? T[Path]
+  : Path extends `${infer K}.${infer R}`
+  ? K extends keyof T
+    ? PropType<T[K], R>
+    : never
+  : never;
+
+type User = {
+  info: {
+    name: {
+      first: string;
+      last: string;
+    };
+  };
+};
+
+type Result = PropType<User, "info.name.first">;
+```
+
+- A: `string`
+- B: `never`
+- C: `unknown`
+- D: `{ first: string; last: string }`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type recursively traverses an object type using a dot-notation string path. It uses template literal types and conditional types to parse the path and access nested properties.
+
+</p>
+</details>
+
+[Previous questions 1-30 remain the same...]
+
+---
+
+###### 31. What's the type of this deep partial utility type?
+
+```typescript
+type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+type Complex = {
+  data: {
+    user: {
+      name: string;
+      age: number;
+    }[];
+  };
+};
+
+type Result = DeepPartial<Complex>;
+```
+
+- A: `{ data?: { user?: { name?: string; age?: number; }[]; }; }`
+- B: `{ data?: { user?: { name: string; age: number; }[]; }; }`
+- C: `{ data: { user: { name?: string; age?: number; }[]; }; }`
+- D: `{ data?: { user?: { name?: string; age?: number; }; }; }`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+DeepPartial recursively makes all properties optional, including those in nested objects and arrays. The Function check prevents trying to make function parameters optional.
+
+</p>
+</details>
+
+---
+
+###### 32. What's the result of this type-level arithmetic?
+
+```typescript
+type BuildTuple<L extends number, T extends any[] = []> = T['length'] extends L 
+  ? T 
+  : BuildTuple<L, [...T, unknown]>;
+
+type Add<A extends number, B extends number> = [...BuildTuple<A>, ...BuildTuple<B>]['length'];
+type Subtract<A extends number, B extends number> = BuildTuple<A> extends [...BuildTuple<B>, ...infer R] 
+  ? R['length'] 
+  : never;
+
+type Result = Add<3, 2>;
+type Result2 = Subtract<5, 3>;
+```
+
+- A: `5, 2`
+- B: `never, never`
+- C: `number, number`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This implements type-level arithmetic using tuple length manipulation. BuildTuple creates a tuple of specified length, which is then used to perform addition and subtraction through tuple concatenation and extraction.
+
+</p>
+</details>
+
+---
+
+###### 33. What's the output of this string manipulation type?
+
+```typescript
+type Split<S extends string, D extends string> = 
+  string extends S ? string[] :
+  S extends '' ? [] :
+  S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] :
+  [S];
+
+type TrimLeft<S extends string> = S extends ` ${infer R}` ? TrimLeft<R> : S;
+type TrimRight<S extends string> = S extends `${infer R} ` ? TrimRight<R> : S;
+type Trim<S extends string> = TrimLeft<TrimRight<S>>;
+
+type Result = Split<Trim<"  hello  world  ">, " ">;
+```
+
+- A: `["hello", "world"]`
+- B: `["", "hello", "", "world", ""]`
+- C: `["hello", "", "world"]`
+- D: `string[]`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This combines string trimming with splitting. The Trim types remove spaces from both ends, then Split breaks the string into parts. Empty strings between delimiters are removed in this implementation.
+
+</p>
+</details>
+
+---
+
+###### 34. What does this discriminated union transformation produce?
+
+```typescript
+type UnionToIntersection<U> = 
+  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
+
+type LastInUnion<U> = 
+  UnionToIntersection<U extends any ? () => U : never> extends () => infer R ? R : never;
+
+type UnionToTuple<U, Last = LastInUnion<U>> = 
+  [U] extends [never] ? [] : [...UnionToTuple<Exclude<U, Last>>, Last];
+
+type Result = UnionToTuple<'a' | 'b' | 'c'>;
+```
+
+- A: `['a', 'b', 'c']`
+- B: `['c', 'b', 'a']`
+- C: `string[]`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This complex type converts a union type to a tuple by using UnionToIntersection and function inference. It maintains the order of the union members in the resulting tuple.
+
+</p>
+</details>
+
+---
+
+###### 35. What's the type of this curried function type?
+
+```typescript
+type Curry<F> = F extends (...args: infer A) => infer R
+  ? A extends [infer First, ...infer Rest]
+    ? (arg: First) => Curry<(...args: Rest) => R>
+    : R
+  : never;
+
+type CurriedFn = Curry<(a: number, b: string, c: boolean) => string>;
+```
+
+- A: `(a: number) => (b: string) => (c: boolean) => string`
+- B: `(a: number, b: string, c: boolean) => string`
+- C: `(...args: [number, string, boolean]) => string`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type transforms a function type into its curried form, where each argument is taken one at a time. It recursively builds up the chain of single-argument functions.
+
+</p>
+</details>
+
+---
+
+###### 36. What will this type-safe event emitter type produce?
+
+```typescript
+type EventMap = {
+  click: { x: number; y: number };
+  change: { value: string };
+};
+
+type TypedEventEmitter<T> = {
+  on<K extends keyof T>(event: K, handler: (data: T[K]) => void): void;
+  emit<K extends keyof T>(event: K, data: T[K]): void;
+};
+
+declare const emitter: TypedEventEmitter<EventMap>;
+emitter.on('click', (data) => data.value);
+```
+
+- A: Valid code
+- B: Error: Property 'value' does not exist on type '{ x: number; y: number; }'
+- C: Error: Type 'string' is not assignable to type 'number'
+- D: No type checking performed
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: B
+
+The TypedEventEmitter ensures type safety between event names and their data types. The error occurs because the click event data has x and y properties, not value.
+
+</p>
+</details>
+
+---
+
+###### 37. What's the result of this recursive required type?
+
+```typescript
+type DeepRequired<T> = T extends Function
+  ? T
+  : T extends object
+  ? { [P in keyof T]-?: DeepRequired<T[P]> }
+  : T;
+
+type NestedObj = {
+  a?: {
+    b?: {
+      c?: string;
+    };
+  };
+};
+
+type Result = DeepRequired<NestedObj>;
+```
+
+- A: `{ a: { b: { c: string; }; }; }`
+- B: `{ a?: { b?: { c: string; }; }; }`
+- C: `{ a: { b?: { c?: string; }; }; }`
+- D: `{ a?: { b?: { c?: string; }; }; }`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+DeepRequired recursively removes optional modifiers (-?) from all properties at all levels of the object, making every property required.
+
+</p>
+</details>
+
+---
+
+###### 38. What's the type of this template literal pattern matching?
+
+```typescript
+type ParseRouteParams<T extends string> = 
+  T extends `${infer Start}:${infer Param}/${infer Rest}`
+    ? { [K in Param]: string } & ParseRouteParams<Rest>
+    : T extends `${infer Start}:${infer Param}`
+      ? { [K in Param]: string }
+      : {};
+
+type Route = ParseRouteParams<"/users/:id/posts/:postId">;
+```
+
+- A: `{ id: string; postId: string; }`
+- B: `{ id: string; } & { postId: string; }`
+- C: `{ [key: string]: string; }`
+- D: `{}`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type extracts route parameters from a URL pattern, converting each :param into a property of an object type. The result is a merged intersection of all parameter types.
+
+</p>
+</details>
+
+---
+
+###### 39. What's the output of this conditional type distribution?
+
+```typescript
+type IsUnion<T, U = T> = T extends U
+  ? [U] extends [T]
+    ? false
+    : true
+  : never;
+
+type Result1 = IsUnion<string | number>;
+type Result2 = IsUnion<string>;
+type Result3 = IsUnion<string & number>;
+```
+
+- A: `true, false, false`
+- B: `false, true, false`
+- C: `true, true, false`
+- D: `never, never, never`
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This type checks if T is a union type by using conditional type distribution. The [U] extends [T] check prevents distribution and allows detecting genuine unions.
+
+</p>
+</details>
+
+---
+
+###### 40. What's the type of this immutable deep freeze utility?
+
+```typescript
+type DeepReadonly<T> = T extends ((...args: any[]) => any) | primitive
+  ? T
+  : T extends Map<infer K, infer V>
+  ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+  : T extends Set<infer U>
+  ? ReadonlySet<DeepReadonly<U>>
+  : { readonly [P in keyof T]: DeepReadonly<T[P]> };
+
+type Result = DeepReadonly<{
+  arr: number[];
+  obj: { x: string };
+  map: Map<string, number>;
+}>;
+```
+
+- A: `{ readonly arr: readonly number[]; readonly obj: { readonly x: string; }; readonly map: ReadonlyMap<string, number>; }`
+- B: `{ arr: number[]; obj: { x: string; }; map: Map<string, number>; }`
+- C: `{ readonly arr: number[]; readonly obj: { x: string; }; readonly map: Map<string, number>; }`
+- D: Compile-time error
+
+<details><summary><b>Answer</b></summary>
+<p>
+
+#### Answer: A
+
+This utility type recursively makes all properties readonly, including nested objects, arrays, Maps, and Sets. It handles all possible nested structures while preserving their original types.
+
+</p>
+</details>
+
